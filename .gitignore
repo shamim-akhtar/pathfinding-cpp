@@ -1,3 +1,7 @@
+/_build_stuff/
+/[Bb]in/
+/.vs/
+
 # Prerequisites
 *.d
 
