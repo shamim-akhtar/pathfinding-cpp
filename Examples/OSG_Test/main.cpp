@@ -1,4 +1,6 @@
 #include <ostream>
+
+#include "GL/glew.h"
 #include <osg/Geode>
 #include <osg/Geometry>
 #include <osg/Material>
@@ -27,17 +29,32 @@
 #include <osgGA/AnimationPathManipulator>
 #include <osgGA/TerrainManipulator>
 #include <osgGA/SphericalManipulator>
+#include "PathFinder.h"
+#include "PathFindingMaps.h"
+#include <iostream>
+
+#include <osgViewer/Viewer>
+#include <osgViewer/config/SingleWindow>
+
+#include "CSprite.h"
+#include "CGridMapOSG.h"
+
+using namespace Faramira;
+
 
 int main(int argc, char** argv)
 {
   // use an ArgumentParser object to manage the program arguments.
-  osg::ArgumentParser arguments(&argc, argv);
+  osg::ArgumentParser arguments(&argc, argv); 
+  
   osgViewer::Viewer viewer;
+  viewer.apply(new osgViewer::SingleWindow(100, 100, 640, 480));
 
-  // create the model
-  osg::Group* root = new osg::Group;
+  //viewer.setRealizeOperation(new GlewInitOperation);
+  viewer.realize();
 
-  viewer.setUpViewInWindow(50, 50, 800, 600);
+
+  //viewer.setUpViewInWindow(50, 50, 800, 600);
   // set up the camera manipulators.
   {
     osg::ref_ptr<osgGA::KeySwitchMatrixManipulator> keyswitchManipulator = new osgGA::KeySwitchMatrixManipulator;
@@ -73,6 +90,7 @@ int main(int argc, char** argv)
 
   // add the screen capture handler
   viewer.addEventHandler(new osgViewer::ScreenCaptureHandler);
+  //viewer.addEventHandler(new ImGuiDemo);
 
   osg::ElapsedTime elapsedTime;
 
@@ -86,9 +104,14 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  viewer.setSceneData(loadedModel);
+  PathFinding::GridMap* gridMap = PathFinding::GridMap::CreateRandomGridMap(10, 10);
 
-  viewer.realize();
+  osg::ref_ptr<CGridMapOSG> grid = new CGridMapOSG(gridMap);
+
+  viewer.addEventHandler(grid->GetEventHandler());
+
+  loadedModel->addChild(grid->GetNode());
+  viewer.setSceneData(loadedModel);
 
   return viewer.run();
 }

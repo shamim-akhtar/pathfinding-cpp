@@ -38,7 +38,7 @@ namespace PathFinding
     // Get the neighbours for this node. 
     // This is the most important function that 
     // your concrete vertex class should implement.
-    virtual std::vector<Node<T>> GetNeighbours() = 0;
+    virtual std::vector<std::shared_ptr<Node<T>>> GetNeighbours() = 0;
   };
 
   // The abstract PathFinder class that implements the core
@@ -74,7 +74,7 @@ namespace PathFinding
       std::shared_ptr<PathFinderNode> Parent;
 
       // The Node that this PathFinderNode is pointing to.
-      Node<T> Location;
+      std::shared_ptr<Node<T>> Location;
 
       // The various costs.
       float Fcost;
@@ -83,7 +83,7 @@ namespace PathFinding
 
       // The constructor.
       // It takes in the Node, the parent, the gvost and the hcost.
-      PathFinderNode(Node<T> location,
+      PathFinderNode(std::shared_ptr<Node<T>> location,
         PathFinderNode parent,
         float gCost,
         float hCost)
@@ -126,7 +126,7 @@ namespace PathFinding
     // Initialize a new search.
     // Note that a search can only be initialized if 
     // the path finder is not already running.
-    bool Initialize(Node<T> start, Node<T> goal)
+    bool Initialize(std::shared_ptr<Node<T>> start, std::shared_ptr<Node<T>> goal)
     {
       if (Status == PathFinderStatus.RUNNING)
       {
@@ -197,12 +197,12 @@ namespace PathFinding
       }
 
       // Find the neighbours.
-      std::vector<Node<T>> neighbours = CurrentNode.Location.GetNeighbours();
+      std::vector<std::shared_ptr<Node<T>>> neighbours = CurrentNode.Location.GetNeighbours();
 
       // Traverse each of these neighbours for possible expansion.
       for (int i = 0; i < neighbours.size(); ++i)
       {
-        AlgorithmSpecificImplementation(neighbours[i]);
+        AlgorithmSpecificImplementation(*neighbours[i]);
       }
       Status = PathFinderStatus.RUNNING;
       //onRunning ? .Invoke();
@@ -210,7 +210,7 @@ namespace PathFinding
     }
 
   protected:
-    virtual void AlgorithmSpecificImplementation(Node<T>& cell) = 0;
+    virtual void AlgorithmSpecificImplementation(std::shared_ptr<Node<T>> cell) = 0;
 
     // Reset the internal variables for a new search.
     void Reset()
@@ -277,8 +277,8 @@ namespace PathFinding
     PathFinderStatus Status;// = PathFinderStatus.NOT_INITIALIZED;
 
     // Add properties for the start and goal nodes.
-    Node<T> Start;
-    Node<T> Goal;
+    std::shared_ptr<Node<T>> Start;
+    std::shared_ptr<Node<T>> Goal;
 
     // The property to access the CurrentNode that the
     // pathfinder is now at.
@@ -303,7 +303,7 @@ namespace PathFinding
   class AStarPathFinder : public PathFinder<T>
   {
   protected:
-    void AlgorithmSpecificImplementation(Node<T>& cell) override
+    void AlgorithmSpecificImplementation(std::shared_ptr<Node<T>> cell) override
     {
       // first of all check if the node is already in the closedlist.
       // if so then we do not need to continue search for this node.
