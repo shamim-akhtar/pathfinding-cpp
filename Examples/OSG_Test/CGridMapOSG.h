@@ -2,6 +2,7 @@
 #include "PathFinder.h"
 #include "PathFindingMaps.h"
 #include "CSprite.h"
+#include "CNPC.h"
 #include <osgGA/GUIEventHandler>
 #include <osgViewer/View>
 
@@ -31,6 +32,7 @@ public:
 
   protected:
     void Pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea);
+    void SelectPosition(osgViewer::View* view, const osgGA::GUIEventAdapter& ea);
     virtual ~CPickHandler();
     CGridMapOSG& mGridMapOSG;
   };
@@ -40,12 +42,22 @@ public:
     return mPickHandler.get();
   }
 
+  void SetNPC(CNPC* npc)
+  {
+    mNPC = npc;
+  }
+
+  CNPC* GetNPC()
+  {
+    return mNPC.get();
+  }
 protected:
   virtual ~CGridMapOSG();
 
 private:
   osg::ref_ptr<osg::Group> mNode;
   osg::ref_ptr<CPickHandler> mPickHandler;
+  osg::ref_ptr<CNPC> mNPC;
   //osg::ref_ptr<CSprite> mSprite;
   //std::vector<osg::ref_ptr<CSprite>> mSprites;
 };

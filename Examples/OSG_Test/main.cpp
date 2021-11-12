@@ -38,6 +38,7 @@
 
 #include "CSprite.h"
 #include "CGridMapOSG.h"
+#include "CNPC.h"
 
 using namespace Faramira;
 
@@ -107,10 +108,14 @@ int main(int argc, char** argv)
   PathFinding::GridMap* gridMap = PathFinding::GridMap::CreateRandomGridMap(10, 10);
 
   osg::ref_ptr<CGridMapOSG> grid = new CGridMapOSG(gridMap);
+  osg::ref_ptr<CNPC> npc = new CNPC();
+  npc->SetFrameStamp(viewer.getFrameStamp());
+  grid->SetNPC(npc.get());
 
   viewer.addEventHandler(grid->GetEventHandler());
 
   loadedModel->addChild(grid->GetNode());
+  loadedModel->addChild(npc->GetNode());
   viewer.setSceneData(loadedModel);
 
   return viewer.run();

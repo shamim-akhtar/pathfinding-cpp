@@ -27,6 +27,9 @@
     <ClCompile Include="CGridMapOSG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CNPC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\PathFinding\PathFinder.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CGridMapOSG.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CNPC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

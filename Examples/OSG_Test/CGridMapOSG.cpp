@@ -227,7 +227,18 @@ bool CGridMapOSG::CPickHandler::handle(
     if (ea.getButton() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON)
     {
       osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
-      if (view) Pick(view, ea);
+      if (view)
+      {
+        Pick(view, ea);
+      }
+    }
+    if (ea.getButton() == osgGA::GUIEventAdapter::RIGHT_MOUSE_BUTTON)
+    {
+      osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
+      if (view)
+      {
+        SelectPosition(view, ea);
+      }
     }
     return false;
   }
@@ -257,7 +268,6 @@ void CGridMapOSG::CPickHandler::Pick(
         GridCellUserData* data = dynamic_cast<GridCellUserData*>(node->getUserData());
         if (data)
         {
-          //data->mCell->SetWalkable(!data->mCell->GetIsWalkable());
           mGridMapOSG.ToggleWalkable(node, data->mCell.get());
         }
       }
@@ -266,6 +276,24 @@ void CGridMapOSG::CPickHandler::Pick(
         osg::Drawable* drawable = hitr->drawable;
       }
       //std::cout << os.str() << "\n";
+    }
+  }
+}
+
+void CGridMapOSG::CPickHandler::SelectPosition(
+  osgViewer::View* view,
+  const osgGA::GUIEventAdapter& ea)
+{
+  osgUtil::LineSegmentIntersector::Intersections intersections;
+
+  if (view->computeIntersections(ea, intersections, NODE_MASK))
+  {
+    for (osgUtil::LineSegmentIntersector::Intersections::iterator hitr = intersections.begin();
+      hitr != intersections.end();
+      ++hitr)
+    {
+      osg::Vec3 pos = hitr->getWorldIntersectPoint();
+      mGridMapOSG.GetNPC()->AddWayPoint(pos);
     }
   }
 }

@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\PathFinding\Maps.cpp" />
     <ClCompile Include="CGridMapOSG.cpp" />
+    <ClCompile Include="CNPC.cpp" />
     <ClCompile Include="CSprite.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -154,6 +155,7 @@
     <ClInclude Include="..\..\PathFinding\PathFindingMaps.h" />
     <ClInclude Include="..\..\PathFinding\PathFinder.h" />
     <ClInclude Include="CGridMapOSG.h" />
+    <ClInclude Include="CNPC.h" />
     <ClInclude Include="CSprite.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
