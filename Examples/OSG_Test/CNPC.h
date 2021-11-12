@@ -26,17 +26,17 @@ namespace Faramira
     }
 
   protected:
-    friend class UpdateCallback;
-    class UpdateCallback : public osg::NodeCallback
-    {
-      CNPC& mNpc;
-      double mLastSimTime = 0.0;
-    public:
-      UpdateCallback(CNPC& npc);
-      virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
-    };
+    //friend class UpdateCallback;
+    //class UpdateCallback : public osg::NodeCallback
+    //{
+    //  CNPC& mNpc;
+    //  double mLastSimTime = 0.0;
+    //public:
+    //  UpdateCallback(CNPC& npc);
+    //  virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+    //};
 
-    void Update(double dt);
+    //void Update(double dt);
 
     virtual ~CNPC()
     {

@@ -224,7 +224,7 @@ bool CGridMapOSG::CPickHandler::handle(
   {
   case(osgGA::GUIEventAdapter::PUSH):
   {
-    if (ea.getButton() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON)
+    if (ea.getButton() == osgGA::GUIEventAdapter::MIDDLE_MOUSE_BUTTON)
     {
       osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
       if (view)

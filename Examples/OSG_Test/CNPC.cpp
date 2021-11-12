@@ -7,19 +7,19 @@
 
 using namespace Faramira;
 
-CNPC::UpdateCallback::UpdateCallback(CNPC& npc)
-	: mNpc(npc)
-{
-
-}
-void CNPC::UpdateCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
-{
-	double simTime = nv->getFrameStamp()->getSimulationTime();
-	std::cout << simTime << "\n";
-	mNpc.Update(simTime - mLastSimTime);
-	mLastSimTime = simTime;
-	traverse(node, nv);
-}
+//CNPC::UpdateCallback::UpdateCallback(CNPC& npc)
+//	: mNpc(npc)
+//{
+//
+//}
+//void CNPC::UpdateCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
+//{
+//	double simTime = nv->getFrameStamp()->getSimulationTime();
+//	std::cout << simTime << "\n";
+//	mNpc.Update(simTime - mLastSimTime);
+//	mLastSimTime = simTime;
+//	traverse(node, nv);
+//}
 
 CNPC::CNPC()
   : osg::Referenced()
@@ -35,19 +35,6 @@ CNPC::CNPC()
 
 	mAnimationPath->setLoopMode(osg::AnimationPath::NO_LOOPING);
 	mNode->setUpdateCallback(new osg::AnimationPathCallback(mAnimationPath.get()));
-}
-
-void CNPC::Update(double dt)
-{
-	//osg::Timer::t
-	const double speed = 5.0f;
-	////moveto next point.
-	//osg::Vec3 nextWayPoint = mWayPoints.front();
-
-	//osg::Vec3 currPos = mNode->getPosition();
-	//
-	//
-	//mWayPoints.pop_front();
 }
 
 void createAnimationPath(
@@ -84,6 +71,10 @@ void CNPC::AddWayPoint(osg::Vec3 pos)
 	if (lastTime > mFrameStamp->getSimulationTime())
 	{
 		time = lastTime;
+	}
+	else
+	{
+		mAnimationPath->clear();
 	}
 	createAnimationPath(mAnimationPath.get(), time, currPos, pos);
 	mWayPoints.push_back(pos);
