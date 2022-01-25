@@ -101,7 +101,7 @@ namespace PathFinding
     std::shared_ptr<GridCell> GetCell(int i, int j)
     {
       assert(i < mX && j < mY);
-      return mCells[(long)(j * mX + i)];
+      return mCells[(long)(i * mY + j)];
     }
 
     std::vector<std::shared_ptr<Node<Point2di>>> 

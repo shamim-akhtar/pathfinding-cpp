@@ -1,4 +1,5 @@
 #include "CGridMapOSG.h"
+#include <iostream>
 
 #include <osg/PositionAttitudeTransform>
 #include <osgViewer/View>
@@ -292,8 +293,17 @@ void CGridMapOSG::CPickHandler::SelectPosition(
       hitr != intersections.end();
       ++hitr)
     {
-      osg::Vec3 pos = hitr->getWorldIntersectPoint();
-      mGridMapOSG.GetNPC()->AddWayPoint(pos);
+      if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
+      {
+        osg::Node* node = hitr->nodePath.back();
+        GridCellUserData* data = dynamic_cast<GridCellUserData*>(node->getUserData());
+        if (data)
+        {
+          osg::Vec3 pos(data->mCell->Value.x, data->mCell->Value.y, 0.0f);
+          mGridMapOSG.GetNPC()->AddWayPoint(pos);
+          //std::cout << pos.x() << ", " << pos.y() << "\n";
+        }
+      }
     }
   }
 }
