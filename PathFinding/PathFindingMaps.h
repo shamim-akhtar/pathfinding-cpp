@@ -26,13 +26,23 @@ namespace PathFinding
     int y;
   };
 
-  class GridMap
+  class GridMap : public osg::Referenced
   {
   public:
 
-    class GridCell : public Node<Point2di>
+    class GridCell : public Node
     {
     public:
+      Point2di Value;
+
+      virtual bool operator==(const Node& other)
+      {
+        const GridCell* b = dynamic_cast<const GridCell*>(&other);
+        if (b == 0)
+          return false;
+
+        return b->Value.x == Value.x && b->Value.y == Value.y;
+      }
       // Is this cell walkable?
       bool GetIsWalkable()
       {
@@ -46,16 +56,17 @@ namespace PathFinding
 
       // construct the node with the grid and the location.
       GridCell(GridMap& gridMap, Point2di value)
-        : Node<Point2di>(value)
+        : Node()
         , mGridMap(gridMap)
         , mIsWalkable(true)
+        , Value(value)
       {
       }
 
       // get the neighbours for this cell.
       // here will will just throw the responsibility
       // to get the neighbours to the grid.
-      std::vector<std::shared_ptr<Node<Point2di>>>
+      std::vector<osg::ref_ptr<Node>>
         GetNeighbours() override
       {
         return mGridMap.GetNeighbourCells(*this);
@@ -64,6 +75,41 @@ namespace PathFinding
     private:
       bool mIsWalkable;
       GridMap& mGridMap;
+    };
+
+    class EuclideancCost : public CostFunction
+    {
+    public:
+      float operator()(const Node& a, const Node& b)
+      {
+        assert(dynamic_cast<const GridCell*>(&a));
+        assert(dynamic_cast<const GridCell*>(&b));
+        return Distance(static_cast<const GridCell&>(a).Value, static_cast<const GridCell&>(b).Value);
+      }
+
+      float Distance(const Point2di& a, const Point2di& b)
+      {
+        return sqrtf(
+          (a.x - b.x) * (a.x - b.x) +
+          (a.y - b.y) * (a.y - b.y)
+        );
+      }
+    };
+
+    class ManhattanCost : public CostFunction
+    {
+    public:
+      float operator()(const Node& a, const Node& b)
+      {
+        assert(dynamic_cast<const GridCell*>(&a));
+        assert(dynamic_cast<const GridCell*>(&b));
+        return ManhattanDistance(static_cast<const GridCell&>(a).Value, static_cast<const GridCell&>(b).Value);
+      }
+
+      float ManhattanDistance(const Point2di& a, const Point2di& b)
+      {
+        return abs(a.x - b.x) + abs(a.y - b.y);
+      }
     };
 
     // helper methods.
@@ -79,7 +125,7 @@ namespace PathFinding
       {
         for (int j = 0; j < mY; ++j)
         {
-          std::shared_ptr<GridCell> sp(
+          osg::ref_ptr<GridCell> sp(
             new GridCell(*this, Point2di(i, j)));
           mCells.push_back(sp);
         }
@@ -98,16 +144,16 @@ namespace PathFinding
 
     bool AllowDiagonalMovement;
 
-    std::shared_ptr<GridCell> GetCell(int i, int j)
+    osg::ref_ptr<GridCell> GetCell(int i, int j)
     {
       assert(i < mX && j < mY);
       return mCells[(long)(i * mY + j)];
     }
 
-    std::vector<std::shared_ptr<Node<Point2di>>> 
+    std::vector<osg::ref_ptr<Node>> 
       GetNeighbourCells(const GridCell& loc)
     {
-      std::vector<std::shared_ptr<Node<Point2di>>> neighbours;
+      std::vector<osg::ref_ptr<Node>> neighbours;
 
       int x = loc.Value.x;
       int y = loc.Value.y;
@@ -194,7 +240,7 @@ namespace PathFinding
       {
         int i = x - 1;
         int j = y + 1;
-        std::shared_ptr<GridCell> cell = GetCell(i, j);
+        osg::ref_ptr<GridCell> cell = GetCell(i, j);
         if (cell->GetIsWalkable())
         {
           neighbours.push_back(cell);
@@ -206,7 +252,7 @@ namespace PathFinding
   private:
     int mX;
     int mY;
-    typedef std::vector<std::shared_ptr<GridCell>> GridCells;
+    typedef std::vector<osg::ref_ptr<GridCell>> GridCells;
     GridCells mCells;
   };
 

@@ -5,12 +5,14 @@
 #include <vector>
 #include <iostream>
 #include <memory>
+#include <osg/Referenced>
+#include <osg/ref_ptr>
 
 namespace PathFinding
 {
   // An enumeration type to represent the status of the 
   // pathfinder at any given time.
-  enum PathFinderStatus
+  enum class PathFinderStatus
   {
     NOT_INITIALIZED = 0,
     SUCCESS,
@@ -22,243 +24,281 @@ namespace PathFinding
   // It is an abstract class that provides the base class
   // for any type of vertex that you want to implement in
   // your path finding problem.
-  template <typename T> 
-  class Node
+  class Node : public osg::Referenced
   {
   public:
-    // We store a reference to the T as Value.
-    T Value;
+    Node() {}
 
-      // The constructor for the Node class.
-    Node(T value)
-    {
-      Value = value;
-    }
+    virtual bool operator==(const Node& other) = 0;
 
     // Get the neighbours for this node. 
     // This is the most important function that 
     // your concrete vertex class should implement.
-    virtual std::vector<std::shared_ptr<Node<T>>> GetNeighbours() = 0;
+    virtual std::vector<osg::ref_ptr<Node>> GetNeighbours() = 0;
+
+  protected:
+    virtual ~Node() {}
+  };
+
+
+  // The PathFinderNode class.
+  // This class equates to a node in a the tree generated
+  // by the pathfinder in its search for the most optimal
+  // path. Do not confuse this with the Node class on top.
+  // This class encapsulates a Node and hold other attributes
+  // needed for the search traversal.
+  // The pathfinder creates instances of this class at runtime
+  // while doing the search.
+  class PathFinderNode : public osg::Referenced
+  {
+  public:
+    // The parent of this node.
+    PathFinderNode* Parent;
+
+    // The Node that this PathFinderNode is pointing to.
+    osg::ref_ptr<Node> Location;
+
+    // The various costs.
+    float Fcost;
+    float GCost;
+    float Hcost;
+
+    // The constructor.
+    // It takes in the Node, the parent, the gvost and the hcost.
+    PathFinderNode(
+      Node* location,
+      PathFinderNode* parent,
+      float gCost,
+      float hCost)
+    {
+      Location = location;
+      Parent = parent;
+      Hcost = hCost;
+      SetGCost(gCost);
+    }
+
+    // Set the gcost. 
+    void SetGCost(float c)
+    {
+      GCost = c;
+      Fcost = GCost + Hcost;
+    }
+
+    // overloaded < operator
+    bool operator < (const PathFinderNode& pfnode)
+    {
+      if (Fcost <= pfnode.Fcost)
+      {
+        return true;
+      }
+      return false;
+    }
+    // overloaded > operator
+    bool operator > (const PathFinderNode& pfnode)
+    {
+      if (Fcost > pfnode.Fcost)
+      {
+        return true;
+      }
+      return false;
+    }
+  };
+
+  // Create a delegate that defines the signature
+  // for calculating the cost between two 
+  // Nodes (T which makes a Node)
+  class CostFunction : public osg::Referenced
+  {
+  public:
+    virtual float operator()(const Node& a, const Node& b) = 0;
+  };
+
+  template<
+    class T,
+    class Container = std::vector<T>,
+    class Compare = std::greater<typename Container::value_type>> 
+    class PQ : public std::priority_queue<T, Container, Compare>
+  {
+  public:
+    typedef typename
+      std::priority_queue<
+      T,
+      Container,
+      Compare>::container_type::iterator iterator;
+
+    iterator find(const T& val) const
+    {
+      auto first = c.cbegin();
+      auto last = c.cend();
+      while (first != last) {
+        if (*first == val) return first;
+        ++first;
+      }
+      return last;
+    }
   };
 
   // The abstract PathFinder class that implements the core
   // pathfinding related codes.
-  template <typename T> 
   class PathFinder
   {
   public:
-
-    // Create a delegate that defines the signature
-    // for calculating the cost between two 
-    // Nodes (T which makes a Node)
-    template <typename T> 
-    class CostFunction
+    void SetHeuristicCost(CostFunction* cf)
     {
-    public:
-      virtual float operator()(const T& a, const T& b) = 0;
-    };
-
-    // The PathFinderNode class.
-    // This class equates to a node in a the tree generated
-    // by the pathfinder in its search for the most optimal
-    // path. Do not confuse this with the Node class on top.
-    // This class encapsulates a Node and hold other attributes
-    // needed for the search traversal.
-    // The pathfinder creates instances of this class at runtime
-    // while doing the search.
-    template <typename T> 
-    class PathFinderNode
+      mHeuristicCostFunction = cf;
+    }
+    void SetNodeTraversalCost(CostFunction* cf)
     {
-    public:
-      // The parent of this node.
-      std::shared_ptr<PathFinderNode> Parent;
+      mNodeTraversalCost = cf;
+    }
 
-      // The Node that this PathFinderNode is pointing to.
-      std::shared_ptr<Node<T>> Location;
+    PathFinderStatus GetStatus() const
+    {
+      return mStatus;
+    }
 
-      // The various costs.
-      float Fcost;
-      float GCost;
-      float Hcost;
+    PathFinderNode* GetCurrentNode()
+    {
+      return mCurrentNode.get();
+    }
 
-      // The constructor.
-      // It takes in the Node, the parent, the gvost and the hcost.
-      PathFinderNode(std::shared_ptr<Node<T>> location,
-        PathFinderNode parent,
-        float gCost,
-        float hCost)
-      {
-        Location = location;
-        Parent = parent;
-        Hcost = hCost;
-        SetGCost(gCost);
-      }
-
-      // Set the gcost. 
-      void SetGCost(float c)
-      {
-        GCost = c;
-        Fcost = GCost + Hcost;
-      }
-
-      // overloaded < operator
-      bool operator < (const PathFinderNode<T>& pfnode) 
-      {
-        if (Fcost <= pfnode.Fcost)
-        {
-          return true;
-        }
-        return false;
-      }
-      // overloaded > operator
-      bool operator > (const PathFinderNode<T>& pfnode)
-      {
-        if (Fcost > pfnode.Fcost)
-        {
-          return true;
-        }
-        return false;
-      }
-    };
-
+    const PathFinderNode* GetCurrentNode() const
+    {
+      return mCurrentNode.get();
+    }
 
     // Stage 1. Initialize the serach.
     // Initialize a new search.
     // Note that a search can only be initialized if 
     // the path finder is not already running.
-    bool Initialize(std::shared_ptr<Node<T>> start, std::shared_ptr<Node<T>> goal)
+    bool Initialize(osg::ref_ptr<Node> start, osg::ref_ptr<Node> goal)
     {
-      if (Status == PathFinderStatus.RUNNING)
+      if (mStatus == PathFinderStatus::RUNNING)
       {
         // Path finding is already in progress.
         return false;
       }
-
       // Reset the variables.
       Reset();
 
       // Set the start and the goal nodes for this search.
-      Start = start;
-      Goal = goal;
+      mStart = start;
+      mGoal = goal;
 
       // Calculate the H cost for the start.
-      float H = (*HeuristicCost)(Start.Value, Goal.Value);
+      float H = (*mHeuristicCostFunction)(*mStart, *mGoal);
 
       // Create a root node with its parent as null.
-      PathFinderNode root = new PathFinderNode(Start, 0, 0f, H);
+      osg::ref_ptr<PathFinderNode> root = new PathFinderNode(mStart, 0, 0.0f, H);
 
       // add this root node to our open list.
-      mOpenList.push(root);
+      mOpenList.push_back(root);
 
       // set the current node to root node.
-      CurrentNode = root;
+      mCurrentNode = root;
 
       //// Invoke the deletages to inform the caller if the delegates are not null.
-      //onChangeCurrentNode ? .Invoke(CurrentNode);
+      //onChangeCurrentNode ? .Invoke(mCurrentNode);
       //onStarted ? .Invoke();
 
       // set the status of the pathfinder to RUNNING.
-      Status = PathFinderStatus.RUNNING;
+      mStatus = PathFinderStatus::RUNNING;
 
       return true;
     }
     // Stage 2: Step until success or failure
     // Take a search step. The user must continue to call this method 
-    // until the Status is either SUCCESS or FAILURE.
+    // until the mStatus is either SUCCESS or FAILURE.
     PathFinderStatus Step()
     {
       // Add the current node to the closed list.
-      mClosedList.push(CurrentNode);
+      mClosedList.push_back(mCurrentNode);
 
       //// Call the delegate to inform any subscribers.
-      //onAddToClosedList ? .Invoke(CurrentNode);
+      //onAddToClosedList ? .Invoke(mCurrentNode);
 
       if (mOpenList.empty())
       {
         // we have exhausted our search. No solution is found.
-        Status = PathFinderStatus.FAILURE;
-        //onFailure ? .Invoke();
-        return Status;
+        mStatus = PathFinderStatus::FAILURE;
+        return mStatus;
       }
 
-      // Get the least cost element from the open list.
-      // This becomes our new current node. 
-      
-      // You can use top to access the least cost element.
-      // Then remove the top from the list by calling pop.
-      CurrentNode = mOpenList.top();
-      mOpenList.pop();
+      int least_cost_index = GetLeastCostNodeIndex(mOpenList);
 
-      // Check if the node contains the Goal cell.
-      if(CurrentNode.Location.Value == Goal.Value)
+      mCurrentNode = mOpenList[least_cost_index];
+      mOpenList.erase(mOpenList.begin() + least_cost_index);
+
+      // Check if the node contains the mGoal cell.
+      if(*mCurrentNode->Location == *mGoal)
       {
-        Status = PathFinderStatus.SUCCESS;
-        return Status;
+        mStatus = PathFinderStatus::SUCCESS;
+        return mStatus;
       }
 
       // Find the neighbours.
-      std::vector<std::shared_ptr<Node<T>>> neighbours = CurrentNode.Location.GetNeighbours();
+      std::vector<osg::ref_ptr<Node>> neighbours = mCurrentNode->Location->GetNeighbours();
 
       // Traverse each of these neighbours for possible expansion.
       for (int i = 0; i < neighbours.size(); ++i)
       {
-        AlgorithmSpecificImplementation(*neighbours[i]);
+        AlgorithmSpecificImplementation(neighbours[i]);
       }
-      Status = PathFinderStatus.RUNNING;
+      mStatus = PathFinderStatus::RUNNING;
       //onRunning ? .Invoke();
-      return Status;
+      return mStatus;
     }
 
   protected:
-    virtual void AlgorithmSpecificImplementation(std::shared_ptr<Node<T>> cell) = 0;
+    virtual void AlgorithmSpecificImplementation(osg::ref_ptr<Node> cell) = 0;
 
     // Reset the internal variables for a new search.
     void Reset()
     {
-      if (Status == PathFinderStatus.RUNNING)
+      if (mStatus == PathFinderStatus::RUNNING)
       {
         // Cannot reset path finder. Path finding in progress.
         return;
       }
 
-      CurrentNode = 0;
+      mCurrentNode = 0;
 
       mOpenList = OpenList();
       mClosedList.clear();
 
-      Status = PathFinderStatus.NOT_INITIALIZED;
+      mStatus = PathFinderStatus::NOT_INITIALIZED;
     }
 
   protected:
+    
+    // A helper method to find the least cost node from a std::vector
+    int GetLeastCostNodeIndex(std::vector<osg::ref_ptr<PathFinderNode>> myList)
+    {
+      int best_index = 0;
+      float best_priority = (*myList[0]).Fcost;
+      for (int i = 1; i < myList.size(); i++)
+      {
+        if (best_priority > (*myList[i]).Fcost)
+        {
+          best_priority = (*myList[i]).Fcost;
+          best_index = i;
+        }
+      }
+      
+      return best_index;
+    }
 
     // A helper method to check if a value of T is in a list.
     // If it is then return the index of the item where the
     // value is. Otherwise return -1.
-    int IsInList(std::vector<PathFinderNode<T>> myList, T cell)
+    int IsInList(std::vector<osg::ref_ptr<PathFinderNode>> myList, const Node& cell)
     {
       auto it = std::find_if(
         myList.begin(),
         myList.end(),
-        [&cell](const PathFinderNode<T>& obj)
+        [&cell](const osg::ref_ptr<PathFinderNode>& obj)
         {
-          return obj.Location.Value == cell;
-        });
-
-      auto index = -1;
-      if (it != myList.end())
-      {
-        index = std::distance(myList.begin(), it);
-      }
-      return index;
-    }
-    int IsInPQ(std::priority_queue<PathFinderNode<T>> myList, T cell)
-    {
-      auto it = std::find_if(
-        myList.begin(),
-        myList.end(),
-        [&cell](const PathFinderNode<T>& obj)
-        {
-          return obj.Location.Value == cell;
+          return (*obj->Location) == cell;
         });
 
       auto index = -1;
@@ -274,40 +314,34 @@ namespace PathFinding
     // Also note that we have made the set to private to 
     // ensure that only this class can change and set
     // the status.
-    PathFinderStatus Status;// = PathFinderStatus.NOT_INITIALIZED;
+    PathFinderStatus mStatus;// = PathFinderStatus.NOT_INITIALIZED;
 
     // Add properties for the start and goal nodes.
-    std::shared_ptr<Node<T>> Start;
-    std::shared_ptr<Node<T>> Goal;
+    osg::ref_ptr<Node> mStart;
+    osg::ref_ptr<Node> mGoal;
 
-    // The property to access the CurrentNode that the
+    // The property to access the mCurrentNode that the
     // pathfinder is now at.
-    std::shared_ptr<PathFinderNode<T>> CurrentNode;// { get; private set; }
+    osg::ref_ptr<PathFinderNode> mCurrentNode;// { get; private set; }
 
-    std::shared_ptr<CostFunction<T>> HeuristicCost;
-    std::shared_ptr<CostFunction<T>> NodeTraversalCost;
+    osg::ref_ptr<CostFunction> mHeuristicCostFunction;
+    osg::ref_ptr<CostFunction> mNodeTraversalCost;
 
-    // The open list for the path finder.
-    typedef std::priority_queue<
-      std::shared_ptr<PathFinderNode<T>>,
-      std::vector<std::shared_ptr<PathFinderNode<T>>>,
-      std::greater<std::shared_ptr<PathFinderNode<T>>>> OpenList;
-
-    typedef std::vector<PathFinderNode<T>> ClosedList;
+    typedef std::vector<osg::ref_ptr<PathFinderNode>> ClosedList;
+    typedef std::vector<osg::ref_ptr<PathFinderNode>> OpenList;
     OpenList mOpenList;
     ClosedList mClosedList;
   };
 
   // The AstarPathFinder.
-  template <typename T> 
-  class AStarPathFinder : public PathFinder<T>
+  class AStarPathFinder : public PathFinder
   {
   protected:
-    void AlgorithmSpecificImplementation(std::shared_ptr<Node<T>> cell) override
+    void AlgorithmSpecificImplementation(osg::ref_ptr<Node> cell) override
     {
       // first of all check if the node is already in the closedlist.
       // if so then we do not need to continue search for this node.
-      if (IsInList(this.mClosedList, cell.Value) == -1)
+      if (IsInList(mClosedList, (*cell)) == -1)
       {
         // The cell does not exist in the closed list.
 
@@ -318,31 +352,31 @@ namespace PathFinding
         // We can actually implement a function to calculate the cost 
         // between two adjacent cells. 
 
-        float G = this.CurrentNode.GCost + NodeTraversalCost(
-          this.CurrentNode.Location.Value, cell.Value);
+        float G = 
+          (*mCurrentNode).GCost + 
+          (*mNodeTraversalCost)(*mCurrentNode->Location, *cell);
 
-        float H = HeuristicCost(cell.Value, this.Goal.Value);
+        float H = (*mHeuristicCostFunction)(*cell, *mGoal);
 
         // Check if the cell is already there in the open list.
-        int idOList = IsInPQ(this.mOpenList, cell.Value);
+        int idOList = IsInList(mOpenList, (*cell));
         if (idOList == -1)
         {
           // The cell does not exist in the open list.
           // We will add the cell to the open list.
-
-          std::shared_ptr<PathFinder::PathFinderNode<T>> n(new PathFinder::PathFinderNode<T>(cell, this.CurrentNode, G, H));
-          this.mOpenList.push(n);
+          PathFinderNode *n = new PathFinderNode(cell.get(), mCurrentNode.get(), G, H);
+          mOpenList.push_back(n);
         }
         else
         {
           // if the cell exists in the openlist then check if the G cost 
           // is less than the one already in the list.
-          float oldG = this.mOpenList[idOList].GCost;
+          float oldG = mOpenList[idOList]->GCost;
           if (G < oldG)
           {
             // change the parent and update the cost to the new G
-            this.mOpenList[idOList].Parent = this.CurrentNode;
-            this.mOpenList[idOList].SetGCost(G);
+            mOpenList[idOList]->Parent = mCurrentNode.get();
+            mOpenList[idOList]->SetGCost(G);
           }
         }
       }

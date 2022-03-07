@@ -51,6 +51,12 @@ public:
   {
     return mNPC.get();
   }
+
+  PathFinding::GridMap::GridCell* GetCell(const osg::Vec3& pos)
+  {
+    return mGrid->GetCell((int)pos.x(), (int)pos.y());
+  }
+
 protected:
   virtual ~CGridMapOSG();
 
@@ -58,6 +64,7 @@ private:
   osg::ref_ptr<osg::Group> mNode;
   osg::ref_ptr<CPickHandler> mPickHandler;
   osg::ref_ptr<CNPC> mNPC;
+  osg::ref_ptr<PathFinding::GridMap> mGrid;
   //osg::ref_ptr<CSprite> mSprite;
   //std::vector<osg::ref_ptr<CSprite>> mSprites;
 };

@@ -105,10 +105,12 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  PathFinding::GridMap* gridMap = PathFinding::GridMap::CreateRandomGridMap(3, 2);
+  PathFinding::GridMap* gridMap = PathFinding::GridMap::CreateRandomGridMap(10, 10);
 
   osg::ref_ptr<CGridMapOSG> grid = new CGridMapOSG(gridMap);
   osg::ref_ptr<CNPC> npc = new CNPC();
+  npc->SetMap(grid.get());
+
   npc->SetFrameStamp(viewer.getFrameStamp());
   grid->SetNPC(npc.get());
 

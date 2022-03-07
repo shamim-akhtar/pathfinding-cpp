@@ -18,12 +18,12 @@ namespace
 {
   struct GridCellUserData : public osg::Referenced
   {
-    GridCellUserData(std::shared_ptr<PathFinding::GridMap::GridCell> cell)
+    GridCellUserData(osg::ref_ptr<PathFinding::GridMap::GridCell> cell)
       : mCell(cell)
     {
 
     }
-    std::shared_ptr<PathFinding::GridMap::GridCell> mCell;
+    osg::ref_ptr<PathFinding::GridMap::GridCell> mCell;
   };
 
   class CcolorVisitor : public osg::NodeVisitor 
@@ -159,6 +159,7 @@ namespace
 CGridMapOSG::CGridMapOSG(PathFinding::GridMap* grid)
   : mNode(new osg::Group)
 {
+  mGrid = grid;
   for (int i = 0; i < grid->GetNumX(); ++i)
   {
     for (int j = 0; j < grid->GetNumY(); ++j)
@@ -171,7 +172,7 @@ CGridMapOSG::CGridMapOSG(PathFinding::GridMap* grid)
       pat->addChild(sprite->GetNode());
       mNode->addChild(pat);
 
-      std::shared_ptr<PathFinding::GridMap::GridCell> cell = grid->GetCell(i, j);
+      osg::ref_ptr<PathFinding::GridMap::GridCell> cell = grid->GetCell(i, j);
       osg::ref_ptr<GridCellUserData> cell_data = new GridCellUserData(cell);
       sprite->GetNode()->setUserData(cell_data);
     }
@@ -300,7 +301,7 @@ void CGridMapOSG::CPickHandler::SelectPosition(
         if (data)
         {
           osg::Vec3 pos(data->mCell->Value.x, data->mCell->Value.y, 0.0f);
-          mGridMapOSG.GetNPC()->AddWayPoint(pos);
+          mGridMapOSG.GetNPC()->MoveTo(pos);
           //std::cout << pos.x() << ", " << pos.y() << "\n";
         }
       }
