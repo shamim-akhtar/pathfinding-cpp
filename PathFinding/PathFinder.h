@@ -113,31 +113,6 @@ namespace PathFinding
     virtual float operator()(const Node& a, const Node& b) = 0;
   };
 
-  template<
-    class T,
-    class Container = std::vector<T>,
-    class Compare = std::greater<typename Container::value_type>> 
-    class PQ : public std::priority_queue<T, Container, Compare>
-  {
-  public:
-    typedef typename
-      std::priority_queue<
-      T,
-      Container,
-      Compare>::container_type::iterator iterator;
-
-    iterator find(const T& val) const
-    {
-      auto first = c.cbegin();
-      auto last = c.cend();
-      while (first != last) {
-        if (*first == val) return first;
-        ++first;
-      }
-      return last;
-    }
-  };
-
   // The abstract PathFinder class that implements the core
   // pathfinding related codes.
   class PathFinder
