@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{bf4429de-5ecc-4d5b-a7c7-17ac5d40c659}</ProjectGuid>
-    <RootNamespace>OSGTest</RootNamespace>
+    <ProjectGuid>{fc5c6ee0-b80c-44d8-a9c4-1b44a48fcdbc}</ProjectGuid>
+    <RootNamespace>PathFindingDLL</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -78,9 +78,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>..\..\_build_stuff\x64\debug\PathFinding_DLL\</IntDir>
     <OutDir>..\..\Bin\</OutDir>
-    <IntDir>..\..\_build_stuff\x64\debug\OSG_Test\</IntDir>
-    <TargetName>$(ProjectName)x64_d</TargetName>
+    <TargetName>$(ProjectName)_x64d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -117,15 +117,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;WIN32;_WINDOWS;_WIN32_WINNT=0x0A00;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PATHFINDING_LIBRARY;_DEBUG;WIN32;_WINDOWS;_WIN32_WINNT=0x0A00;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\devel\GFX\OSG\include;..\..\PathFinding;imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\PathFinding;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>osgViewerd.lib;osgTextd.lib;opengl32.lib;osgGAd.lib;osgDBd.lib;osgUtild.lib;osgd.lib;OpenThreadsd.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\devel\GFX\OSG\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,22 +143,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\PathFinding\Maps.cpp" />
-    <ClCompile Include="..\..\PathFinding\PFMapGrid.cpp" />
-    <ClCompile Include="..\..\PathFinding\PFMapGridNode.cpp" />
-    <ClCompile Include="CGridMapOSG.cpp" />
-    <ClCompile Include="CNPC.cpp" />
-    <ClCompile Include="CSprite.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClInclude Include="..\PathFinding\Export.h" />
+    <ClInclude Include="..\PathFinding\PathFinder.h" />
+    <ClInclude Include="..\PathFinding\PFMapGrid.h" />
+    <ClInclude Include="..\PathFinding\PFMapGridNode.h" />
+    <ClInclude Include="..\PathFinding\Point2di.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\PathFinding\PathFinder.h" />
-    <ClInclude Include="..\..\PathFinding\PFMapGrid.h" />
-    <ClInclude Include="..\..\PathFinding\PFMapGridNode.h" />
-    <ClInclude Include="..\..\PathFinding\Point2di.h" />
-    <ClInclude Include="CGridMapOSG.h" />
-    <ClInclude Include="CNPC.h" />
-    <ClInclude Include="CSprite.h" />
+    <ClCompile Include="..\PathFinding\PathFinder.cpp" />
+    <ClCompile Include="..\PathFinding\PFMapGrid.cpp" />
+    <ClCompile Include="..\PathFinding\PFMapGridNode.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
