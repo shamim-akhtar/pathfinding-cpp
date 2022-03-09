@@ -8,10 +8,10 @@
 namespace PathFinding
 {
   class PFMapGrid;
+  const float NON_WALKABLE_COST = 999999.0f;
   class PATHFINDING_EXPORT PFMapGridNode : public PFNode
   {
   public:
-    const float NON_WALKABLE_COST = 999999.0f;
     Point2di Point;
     /// <summary>
     /// The cost of this node. Higher cost mean less
@@ -62,7 +62,7 @@ namespace PathFinding
     // Is this cell walkable?
     inline bool GetIsWalkable() const
     {
-      return Cost >= NON_WALKABLE_COST;
+      return Cost < NON_WALKABLE_COST;
     }
 
     // construct the node with the grid and the location.

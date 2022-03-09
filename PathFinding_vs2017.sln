@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.30523.141
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSG_Test", "Examples\OSG_Test\OSG_Test.vcxproj", "{BF4429DE-5ECC-4D5B-A7C7-17AC5D40C659}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FC5C6EE0-B80C-44D8-A9C4-1B44A48FCDBC} = {FC5C6EE0-B80C-44D8-A9C4-1B44A48FCDBC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PathFinding_DLL", "PathFinding_DLL\PathFinding_DLL.vcxproj", "{FC5C6EE0-B80C-44D8-A9C4-1B44A48FCDBC}"
 EndProject

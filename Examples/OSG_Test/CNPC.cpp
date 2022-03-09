@@ -1,10 +1,11 @@
 #include "CNPC.h"
+#include "CGridMapOSG.h"
+
 #include <osg/Timer>
 #include <iostream>
 #include <osg/Shape>
 #include <osg/ShapeDrawable>
 #include <osg/Geode>
-#include "CGridMapOSG.h"
 
 using namespace Faramira;
 
@@ -26,21 +27,17 @@ void CNPC::UpdateCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 
 CNPC::CNPC()
   : osg::Referenced()
-	, mAnimationPath(new osg::AnimationPath())
+	, mEnablePathFinding(true)
+	, mStart(0)
 {
 	mPathFinder = new PathFinding::AStarPathFinder();
-	mPathFinder->SetHeuristicCost(new PathFinding::GridMap::ManhattanCost);
-	mPathFinder->SetNodeTraversalCost(new PathFinding::GridMap::EuclideancCost);
   mNode = new osg::PositionAttitudeTransform();
-	//mNode->setUpdateCallback(new UpdateCallback(*this));
 
 	// create a simple shape.
 	osg::Geode* geode = new osg::Geode();
 	geode->addDrawable(new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f, 0.0f, 0.2f), 0.2f)));
 	mNode->addChild(geode);
 
-	mAnimationPath->setLoopMode(osg::AnimationPath::NO_LOOPING);
-	//mNode->setUpdateCallback(new osg::AnimationPathCallback(mAnimationPath.get()));
 	mNode->setUpdateCallback(new UpdateCallback(*this));
 	_speed = 1.0f;
 	_lastPoint.set(0.0f, 0.0f, 0.0f);
@@ -48,35 +45,27 @@ CNPC::CNPC()
 	_lastTime = 0.0f;
 }
 
-void CNPC::MoveTo(osg::Vec3 pos)
+void CNPC::MoveToGridNode(PathFinding::PFMapGridNode* pfGridNode)
 {
-	MoveToWithPathFinding(pos);
-	//mWayPoints.push_back(pos);
-}
-
-void CNPC::MoveToWithPathFinding(osg::Vec3 pos)
-{
-	osg::Vec3 currPos = mNode->getPosition();
-	if (mWayPoints.size() > 0)
+	if (mEnablePathFinding)
 	{
-		currPos = mWayPoints.front();
-	}
-	double lastTime = mAnimationPath->getLastTime();
-	double time = mFrameStamp->getSimulationTime();
-	if (lastTime > mFrameStamp->getSimulationTime())
-	{
-		time = lastTime;
+		MoveToGridNodeWithPathFinding(pfGridNode);
 	}
 	else
 	{
-		mAnimationPath->clear();
+		mWayPoints.push_back(osg::Vec3(pfGridNode->Point.x, pfGridNode->Point.y, 0.0f));
 	}
+}
+
+void CNPC::MoveToGridNodeWithPathFinding(PathFinding::PFMapGridNode* pfGridNode)
+{
+	if (mStart == 0) return;
 
 	// 
 	if (mPathFinder->GetStatus() != PathFinding::PathFinderStatus::RUNNING)
 	{
-		PathFinding::GridMap::GridCell* start = _map->GetCell(currPos);
-		PathFinding::GridMap::GridCell* goal = _map->GetCell(pos);
+		PathFinding::PFNode* start = mStart;
+		PathFinding::PFMapGridNode* goal = pfGridNode;
 
 		mPathFinder->Initialize(start, goal);
 		while (mPathFinder->GetStatus() == PathFinding::PathFinderStatus::RUNNING)
@@ -85,19 +74,16 @@ void CNPC::MoveToWithPathFinding(osg::Vec3 pos)
 		}
 		if (mPathFinder->GetStatus() == PathFinding::PathFinderStatus::SUCCESS)
 		{
-			std::vector<osg::ref_ptr<PathFinding::GridMap::GridCell>> nodes;
-			PathFinding::PathFinderNode* currNode = mPathFinder->GetCurrentNode();
-			while (currNode != 0)
-			{
-				nodes.push_back(dynamic_cast<PathFinding::GridMap::GridCell*>(currNode->Location.get()));
-				currNode = currNode->Parent;
-			}
+			std::vector<PathFinding::PFNode*> path = mPathFinder->GetReversePath();
 
-			for (int i = nodes.size() - 1; i >= 0; i--)
+			for (int i = path.size() - 1; i >= 0; i--)
 			{
-				mWayPoints.push_back(osg::Vec3(nodes[i]->Value.x, nodes[i]->Value.y, 0.0f));
-				std::cout << "x: " << nodes[i]->Value.x << ", y: " << nodes[i]->Value.y << "\n";
+				PathFinding::PFMapGridNode* node = dynamic_cast<PathFinding::PFMapGridNode*>(path[i]);
+				assert(node);
+				mWayPoints.push_back(osg::Vec3(node->Point.x, node->Point.y, 0.0f));
 			}
+			// set the goal to be the new start.
+			mStart = goal;
 		}
 		if (mPathFinder->GetStatus() == PathFinding::PathFinderStatus::FAILURE)
 		{
@@ -109,6 +95,7 @@ void CNPC::MoveToWithPathFinding(osg::Vec3 pos)
 void CNPC::SetMap(CGridMapOSG* gridMap)
 {
 	_map = gridMap;
+	mStart = _map->GetMapGrid()->GetCell(0, 0);
 }
 
 void CNPC::update()

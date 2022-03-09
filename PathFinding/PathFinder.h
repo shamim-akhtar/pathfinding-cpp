@@ -209,6 +209,23 @@ namespace PathFinding
       return mStatus;
     }
 
+    // Get the path if a path is found.
+    // Returns the array of nodes from goal to start.
+    std::vector<PFNode*> GetReversePath() const
+    {
+      std::vector<PFNode*> path;
+      if (mStatus == PathFinderStatus::SUCCESS)
+      {
+        PathFinderNode* currNode = mCurrentNode;
+        while (currNode != 0)
+        {
+          path.push_back(currNode->Location);
+          currNode = currNode->Parent;
+        }
+      }
+      return path;
+    }
+
   protected:
     virtual void AlgorithmSpecificImplementation(PFNode* cell) = 0;
 

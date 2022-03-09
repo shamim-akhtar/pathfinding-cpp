@@ -124,8 +124,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>osgViewerd.lib;osgTextd.lib;opengl32.lib;osgGAd.lib;osgDBd.lib;osgUtild.lib;osgd.lib;OpenThreadsd.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\devel\GFX\OSG\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>osgViewerd.lib;osgTextd.lib;opengl32.lib;osgGAd.lib;osgDBd.lib;osgUtild.lib;osgd.lib;OpenThreadsd.lib;glew32.lib;PathFinding_DLL_x64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\devel\GFX\OSG\lib;..\..\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,21 +145,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\PathFinding\Maps.cpp" />
-    <ClCompile Include="..\..\PathFinding\PFMapGrid.cpp" />
-    <ClCompile Include="..\..\PathFinding\PFMapGridNode.cpp" />
     <ClCompile Include="CGridMapOSG.cpp" />
     <ClCompile Include="CNPC.cpp" />
+    <ClCompile Include="CPickHandler.cpp" />
     <ClCompile Include="CSprite.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\PathFinding\PathFinder.h" />
-    <ClInclude Include="..\..\PathFinding\PFMapGrid.h" />
-    <ClInclude Include="..\..\PathFinding\PFMapGridNode.h" />
-    <ClInclude Include="..\..\PathFinding\Point2di.h" />
     <ClInclude Include="CGridMapOSG.h" />
     <ClInclude Include="CNPC.h" />
+    <ClInclude Include="CPickHandler.h" />
     <ClInclude Include="CSprite.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

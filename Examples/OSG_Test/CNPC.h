@@ -1,8 +1,8 @@
 #pragma once
 
-#include <osg/PositionAttitudeTransform>
 #include "PathFinder.h"
-#include "PathFindingMaps.h"
+#include "PFMapGridNode.h"
+#include <osg/PositionAttitudeTransform>
 #include <deque>
 
 namespace Faramira
@@ -14,8 +14,18 @@ namespace Faramira
     CNPC();
     void SetMap(CGridMapOSG* gridMap);
 
-    void MoveTo(osg::Vec3 pos);
-    void MoveToWithPathFinding(osg::Vec3 pos);
+    void SetEnablePathFinding(bool flag)
+    {
+      mEnablePathFinding = flag;
+    }
+
+    bool GetEnablePathFinding() const
+    {
+      return mEnablePathFinding;
+    }
+
+    //void MoveTo(osg::Vec3 pos);
+    void MoveToGridNode(PathFinding::PFMapGridNode* pfGridNode);
 
     void SetFrameStamp(const osg::FrameStamp* fs)
     {
@@ -33,6 +43,8 @@ namespace Faramira
 
     void update();
 
+  protected:
+
     class UpdateCallback : public osg::NodeCallback
     {
       CNPC& mNpc;
@@ -41,13 +53,12 @@ namespace Faramira
       void operator()(osg::Node* node, osg::NodeVisitor* nv);
     };
 
-  protected:
+    void MoveToGridNodeWithPathFinding(PathFinding::PFMapGridNode* pfGridNode);
     virtual ~CNPC()
     {
     }
     std::deque<osg::Vec3> mWayPoints;
     osg::ref_ptr<osg::PositionAttitudeTransform> mNode;
-    osg::ref_ptr<osg::AnimationPath> mAnimationPath;
     const osg::FrameStamp* mFrameStamp;
 
     PathFinding::AStarPathFinder* mPathFinder;
@@ -60,5 +71,7 @@ namespace Faramira
     double _lastTime;
     osg::Vec3 _direction;
     float _speed;
+    bool mEnablePathFinding;
+    PathFinding::PFNode* mStart;
   };
 }

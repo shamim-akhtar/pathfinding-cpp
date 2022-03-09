@@ -4,8 +4,7 @@ namespace PathFinding
 {
   PFMapGrid* PFMapGrid::CreateRandomGridMap(int numX, int numY)
   {
-    //TODO
-    return 0;
+    return new PFMapGrid(numX, numY);
   }
   PFMapGrid::PFMapGrid(unsigned int numX, unsigned int numY)
     : mX(numX)

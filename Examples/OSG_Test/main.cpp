@@ -30,7 +30,6 @@
 #include <osgGA/TerrainManipulator>
 #include <osgGA/SphericalManipulator>
 #include "PathFinder.h"
-#include "PathFindingMaps.h"
 #include <iostream>
 
 #include <osgViewer/Viewer>
@@ -39,6 +38,7 @@
 #include "CSprite.h"
 #include "CGridMapOSG.h"
 #include "CNPC.h"
+#include "CPickHandler.h"
 
 using namespace Faramira;
 
@@ -105,20 +105,31 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  PathFinding::GridMap* gridMap = PathFinding::GridMap::CreateRandomGridMap(10, 10);
+  // Create the pathfinding uniform grid.
+  PathFinding::PFMapGrid* pfGridMap = PathFinding::PFMapGrid::CreateRandomGridMap(3, 2);
 
-  osg::ref_ptr<CGridMapOSG> grid = new CGridMapOSG(gridMap);
+  // create a visual representation of the grid using OSG.
+  // associate this visual grid with the pathfinding grid.
+  osg::ref_ptr<CGridMapOSG> osgGridMap = new CGridMapOSG(pfGridMap);
+
+  // Create an NPC.
   osg::ref_ptr<CNPC> npc = new CNPC();
-  npc->SetMap(grid.get());
 
+  // Set the osg map to the NPC.
+  npc->SetMap(osgGridMap.get());
   npc->SetFrameStamp(viewer.getFrameStamp());
-  grid->SetNPC(npc.get());
 
-  viewer.addEventHandler(grid->GetEventHandler());
+  // create the Pick event handler.
+  CPickHandler* pick = new CPickHandler(*osgGridMap, *npc);
 
-  loadedModel->addChild(grid->GetNode());
+  viewer.addEventHandler(pick);
+
+  loadedModel->addChild(osgGridMap->GetNode());
   loadedModel->addChild(npc->GetNode());
   viewer.setSceneData(loadedModel);
 
-  return viewer.run();
+  viewer.run();
+
+  delete pfGridMap;
+  return 0;
 }

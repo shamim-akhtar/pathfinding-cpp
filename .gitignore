@@ -1,5 +1,6 @@
 /_build_stuff/
 /[Bb]in/
+/[Ll]ib/
 /.vs/
 
 # Prerequisites
