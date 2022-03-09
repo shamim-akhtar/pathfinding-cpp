@@ -18,12 +18,14 @@ namespace
 {
   struct GridCellUserData : public osg::Referenced
   {
-    GridCellUserData(osg::ref_ptr<PathFinding::GridMap::GridCell> cell)
+    GridCellUserData(PathFinding::PFMapGridNode* cell)
       : mCell(cell)
     {
-
     }
-    osg::ref_ptr<PathFinding::GridMap::GridCell> mCell;
+    PathFinding::PFMapGridNode* mCell;
+
+  protected:
+    virtual ~GridCellUserData() {}
   };
 
   class CcolorVisitor : public osg::NodeVisitor 
@@ -156,7 +158,7 @@ namespace
   }; // class CcolorVisitor
 }
 
-CGridMapOSG::CGridMapOSG(PathFinding::GridMap* grid)
+CGridMapOSG::CGridMapOSG(PathFinding::PFMapGrid* grid)
   : mNode(new osg::Group)
 {
   mGrid = grid;
@@ -172,28 +174,33 @@ CGridMapOSG::CGridMapOSG(PathFinding::GridMap* grid)
       pat->addChild(sprite->GetNode());
       mNode->addChild(pat);
 
-      osg::ref_ptr<PathFinding::GridMap::GridCell> cell = grid->GetCell(i, j);
+      PathFinding::PFMapGridNode* cell = grid->GetCell(i, j);
       osg::ref_ptr<GridCellUserData> cell_data = new GridCellUserData(cell);
       sprite->GetNode()->setUserData(cell_data);
     }
   }
   mNode->setNodeMask(NODE_MASK);
-  mPickHandler = new CPickHandler(*this);
 }
 
 CGridMapOSG::~CGridMapOSG()
 {
 }
 
-CGridMapOSG::CPickHandler::CPickHandler(CGridMapOSG& gridMapOSG)
-  : osgGA::GUIEventHandler()
-  , mGridMapOSG(gridMapOSG)
+PathFinding::PFMapGridNode* CGridMapOSG::GetGridNodeFromNode(osg::Node* node)
 {
+  GridCellUserData* data = dynamic_cast<GridCellUserData*>(node->getUserData());
+  if (data) return data->mCell;
+  return 0;
 }
 
-void CGridMapOSG::ToggleWalkable(osg::Node* node, PathFinding::GridMap::GridCell* cell)
+void CGridMapOSG::ToggleWalkable(osg::Node* node)
 {
-  cell->SetWalkable(!cell->GetIsWalkable());
+  GridCellUserData* data = dynamic_cast<GridCellUserData*>(node->getUserData());
+  if (data == 0)
+    return;
+
+  PathFinding::PFMapGridNode* cell = data->mCell;
+  cell->Cost = cell->GetIsWalkable() ? PathFinding::NON_WALKABLE_COST: 0.0f;
   if (cell->GetIsWalkable())
   {
     if (node)
@@ -210,101 +217,6 @@ void CGridMapOSG::ToggleWalkable(osg::Node* node, PathFinding::GridMap::GridCell
       CcolorVisitor cv;
       cv.setColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
       node->accept(cv);
-    }
-  }
-}
-
-CGridMapOSG::CPickHandler::~CPickHandler()
-{
-}
-
-bool CGridMapOSG::CPickHandler::handle(
-  const osgGA::GUIEventAdapter& ea, 
-  osgGA::GUIActionAdapter& aa)
-{
-  switch (ea.getEventType())
-  {
-  case(osgGA::GUIEventAdapter::PUSH):
-  {
-    if (ea.getButton() == osgGA::GUIEventAdapter::MIDDLE_MOUSE_BUTTON)
-    {
-      osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
-      if (view)
-      {
-        Pick(view, ea);
-      }
-    }
-    if (ea.getButton() == osgGA::GUIEventAdapter::RIGHT_MOUSE_BUTTON)
-    {
-      osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
-      if (view)
-      {
-        SelectPosition(view, ea);
-      }
-    }
-    return false;
-  }
-  default:
-    return false;
-  }
-}
-
-void CGridMapOSG::CPickHandler::Pick(
-  osgViewer::View* view, 
-  const osgGA::GUIEventAdapter& ea)
-{
-  osgUtil::LineSegmentIntersector::Intersections intersections;
-
-  if (view->computeIntersections(ea, intersections, NODE_MASK))
-  {
-    for (osgUtil::LineSegmentIntersector::Intersections::iterator hitr = intersections.begin();
-      hitr != intersections.end();
-      ++hitr)
-    {
-      //std::ostringstream os;
-      if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
-      {
-        // the geodes are identified by name.
-        //os << "Object \"" << hitr->nodePath.back()->getName() << "\"" << std::endl;
-        osg::Node* node = hitr->nodePath.back();
-        GridCellUserData* data = dynamic_cast<GridCellUserData*>(node->getUserData());
-        if (data)
-        {
-          mGridMapOSG.ToggleWalkable(node, data->mCell.get());
-        }
-      }
-      if (hitr->drawable.valid())
-      {
-        osg::Drawable* drawable = hitr->drawable;
-      }
-      //std::cout << os.str() << "\n";
-    }
-  }
-}
-
-void CGridMapOSG::CPickHandler::SelectPosition(
-  osgViewer::View* view,
-  const osgGA::GUIEventAdapter& ea)
-{
-  osgUtil::LineSegmentIntersector::Intersections intersections;
-
-  if (view->computeIntersections(ea, intersections, NODE_MASK))
-  {
-    for (osgUtil::LineSegmentIntersector::Intersections::iterator hitr = intersections.begin();
-      hitr != intersections.end();
-      ++hitr)
-    {
-      if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
-      {
-        osg::Node* node = hitr->nodePath.back();
-        GridCellUserData* data = dynamic_cast<GridCellUserData*>(node->getUserData());
-        if (data)
-        {
-          osg::Vec3 pos(data->mCell->Value.x, data->mCell->Value.y, 0.0f);
-          mGridMapOSG.GetNPC()->MoveTo(pos);
-          //std::cout << pos.x() << ", " << pos.y() << "\n";
-        }
-      }
     }
   }
 }

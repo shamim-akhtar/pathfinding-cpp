@@ -1,6 +1,6 @@
 #pragma once
 #include "PathFinder.h"
-#include "PathFindingMaps.h"
+#include "PFMapGrid.h"
 #include "CSprite.h"
 #include "CNPC.h"
 #include <osgGA/GUIEventHandler>
@@ -8,64 +8,35 @@
 
 namespace Faramira
 {
+
 class CGridMapOSG : public osg::Referenced
 {
 public:
   static const unsigned int NODE_MASK = 0x0001;
-  CGridMapOSG(PathFinding::GridMap* grid);
+  CGridMapOSG(PathFinding::PFMapGrid* grid);
 
   osg::Node* GetNode()
   {
     return mNode.get();
   }
 
-  void ToggleWalkable(osg::Node* node, PathFinding::GridMap::GridCell* cell);
-
-  class CPickHandler : public osgGA::GUIEventHandler
+  PathFinding::PFMapGridNode* GetGridNodeFromNode(osg::Node* node);
+  PathFinding::PFMapGrid* GetMapGrid()
   {
-  public:
-    CPickHandler(CGridMapOSG& gridMapOSG);
-
-    virtual bool handle(
-      const osgGA::GUIEventAdapter& ea,
-      osgGA::GUIActionAdapter& aa); 
-
-  protected:
-    void Pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea);
-    void SelectPosition(osgViewer::View* view, const osgGA::GUIEventAdapter& ea);
-    virtual ~CPickHandler();
-    CGridMapOSG& mGridMapOSG;
-  };
-
-  osgGA::GUIEventHandler* GetEventHandler()
-  {
-    return mPickHandler.get();
+    return mGrid;
   }
 
-  void SetNPC(CNPC* npc)
-  {
-    mNPC = npc;
-  }
+  //PathFinding::PFMapGridNode* GetGridNodeFromPosition(const osg::Vec3& pos)
+  //{
+  //  return mGrid->GetCell((int)pos.x(), (int)pos.y());
+  //}
 
-  CNPC* GetNPC()
-  {
-    return mNPC.get();
-  }
-
-  PathFinding::GridMap::GridCell* GetCell(const osg::Vec3& pos)
-  {
-    return mGrid->GetCell((int)pos.x(), (int)pos.y());
-  }
-
+  void ToggleWalkable(osg::Node* node);
 protected:
   virtual ~CGridMapOSG();
 
 private:
   osg::ref_ptr<osg::Group> mNode;
-  osg::ref_ptr<CPickHandler> mPickHandler;
-  osg::ref_ptr<CNPC> mNPC;
-  osg::ref_ptr<PathFinding::GridMap> mGrid;
-  //osg::ref_ptr<CSprite> mSprite;
-  //std::vector<osg::ref_ptr<CSprite>> mSprites;
+  PathFinding::PFMapGrid* mGrid;
 };
 }
