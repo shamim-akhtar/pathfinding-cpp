@@ -12,7 +12,7 @@ namespace PathFinding
     // helper methods.
     static PFMapGrid* CreateRandomGridMap(int numX, int numY);
   public:
-    typedef std::vector<PFMapGridNode*> PFMapNodes;
+    typedef std::vector<std::shared_ptr<PFMapGridNode>> PFMapNodes;
 
     explicit PFMapGrid(unsigned int numX, unsigned int numY);
 
@@ -32,14 +32,14 @@ namespace PathFinding
     {
       assert(i < mX&& j < mY);
       unsigned int x = i * mY + j;
-      return mCells[x];
+      return mCells[x].get();
     }
 
     inline const PFMapGridNode* GetMapNode(unsigned int i, unsigned int j) const
     {
       assert(i < mX&& j < mY);
       unsigned int x = i * mY + j;
-      return mCells[x];
+      return mCells[x].get();
     }
 
     std::vector<const PFNode*> GetNeighbourCells(const PFMapGridNode& loc) const;

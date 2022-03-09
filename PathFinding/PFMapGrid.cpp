@@ -16,7 +16,7 @@ namespace PathFinding
     {
       for (unsigned int j = 0; j < mY; ++j)
       {
-        PFMapGridNode* sp = new PFMapGridNode(*this, Point2di(i, j));
+        auto sp = std::make_shared<PFMapGridNode>(*this, Point2di(i, j));
         mCells.push_back(sp);
       }
     }
