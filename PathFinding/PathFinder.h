@@ -27,7 +27,7 @@ namespace PathFinding
   public:
     PFNode() {}
 
-    virtual bool operator==(const PFNode& other) = 0;
+    virtual bool operator==(const PFNode& other) const = 0;
     /// <summary>
     /// The Heuristic cost between this node to another node.
     /// The derived class needs to implement this function
@@ -35,20 +35,20 @@ namespace PathFinding
     /// </summary>
     /// <param name="other">The other node</param>
     /// <returns></returns>
-    virtual float HeuristicCost(const PFNode& other) const = 0;
+    virtual float GetHeuristicCost(const PFNode& other) const = 0;
     /// <summary>
-    /// The PFNode Traversal cost between this node to another node.
+    /// The Node Traversal cost between this node to another node.
     /// The derived class needs to implement this function
     /// based on the type of map used.
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    virtual float NodeTraversalCost(const PFNode& other) const = 0;
+    virtual float GetNodeTraversalCost(const PFNode& other) const = 0;
 
     // Get the neighbours for this node. 
     // This is the most important function that 
     // your concrete vertex class should implement.
-    virtual std::vector<PFNode*> GetNeighbours() = 0;
+    virtual std::vector<const PFNode*> GetNeighbours() const = 0;
 
     virtual ~PFNode() {}
   };
@@ -70,10 +70,10 @@ namespace PathFinding
     {
     public:
       // The parent of this node.
-      PathFinderNode* Parent;
+      const PathFinderNode* Parent;
 
       // The PFNode that this PathFinderNode is pointing to.
-      PFNode* Location;
+      const PFNode* Location;
 
       // The various costs.
       float Fcost;
@@ -83,8 +83,8 @@ namespace PathFinding
       // The constructor.
       // It takes in the PFNode, the parent, the gvost and the hcost.
       PathFinderNode(
-        PFNode* location,
-        PathFinderNode* parent,
+        const PFNode* location,
+        const PathFinderNode* parent,
         float gCost,
         float hCost)
       {
@@ -102,7 +102,7 @@ namespace PathFinding
       }
 
       // overloaded < operator
-      bool operator < (const PathFinderNode& pfnode)
+      bool operator < (const PathFinderNode& pfnode) const
       {
         if (Fcost <= pfnode.Fcost)
         {
@@ -111,7 +111,7 @@ namespace PathFinding
         return false;
       }
       // overloaded > operator
-      bool operator > (const PathFinderNode& pfnode)
+      bool operator > (const PathFinderNode& pfnode) const
       {
         if (Fcost > pfnode.Fcost)
         {
@@ -120,7 +120,27 @@ namespace PathFinding
         return false;
       }
     };
+  protected:
+    // Add a property that holds the current status of the
+    // pathfinder. By default it is set to NOT_INITIALIZED.
+    // Also note that we have made the set to private to 
+    // ensure that only this class can change and set
+    // the status.
+    PathFinderStatus mStatus;// = PathFinderStatus.NOT_INITIALIZED;
+
+    // Add properties for the start and goal nodes.
+    const PFNode* mStart;
+    const PFNode* mGoal;
+
+    std::shared_ptr<PathFinderNode> mCurrentNode;
+
+    typedef std::vector<std::shared_ptr<PathFinderNode>> ClosedList;
+    typedef std::vector<std::shared_ptr<PathFinderNode>> OpenList;
+
+    OpenList mOpenList;
+    ClosedList mClosedList;
   public:
+
     inline PathFinderStatus GetStatus() const
     {
       return mStatus;
@@ -130,7 +150,7 @@ namespace PathFinding
     // Initialize a new search.
     // Note that a search can only be initialized if 
     // the path finder is not already running.
-    bool Initialize(PFNode* start, PFNode* goal)
+    bool Initialize(const PFNode* start, const PFNode* goal)
     {
       if (mStatus == PathFinderStatus::RUNNING)
       {
@@ -145,20 +165,13 @@ namespace PathFinding
       mGoal = goal;
 
       // Calculate the H cost for the start.
-      float H = mStart->HeuristicCost(*mGoal);
+      float H = mStart->GetHeuristicCost(*mGoal);
 
       // Create a root node with its parent as null.
-      PathFinderNode* root = new PathFinderNode(mStart, 0, 0.0f, H);
+      mCurrentNode = std::make_shared<PathFinderNode>(mStart, static_cast<const PathFinderNode*>(0), 0.0f, H);
 
       // add this root node to our open list.
-      mOpenList.push_back(root);
-
-      // set the current node to root node.
-      mCurrentNode = root;
-
-      //// Invoke the deletages to inform the caller if the delegates are not null.
-      //onChangeCurrentNode ? .Invoke(mCurrentNode);
-      //onStarted ? .Invoke();
+      mOpenList.push_back(mCurrentNode);
 
       // set the status of the pathfinder to RUNNING.
       mStatus = PathFinderStatus::RUNNING;
@@ -197,7 +210,7 @@ namespace PathFinding
       }
 
       // Find the neighbours.
-      std::vector<PFNode*> neighbours = mCurrentNode->Location->GetNeighbours();
+      std::vector<const PFNode*> neighbours = mCurrentNode->Location->GetNeighbours();
 
       // Traverse each of these neighbours for possible expansion.
       for (int i = 0; i < neighbours.size(); ++i)
@@ -211,12 +224,12 @@ namespace PathFinding
 
     // Get the path if a path is found.
     // Returns the array of nodes from goal to start.
-    std::vector<PFNode*> GetReversePath() const
+    std::vector<const PFNode*> GetReversePath() const
     {
-      std::vector<PFNode*> path;
+      std::vector<const PFNode*> path;
       if (mStatus == PathFinderStatus::SUCCESS)
       {
-        PathFinderNode* currNode = mCurrentNode;
+        const PathFinderNode* currNode = mCurrentNode.get();
         while (currNode != 0)
         {
           path.push_back(currNode->Location);
@@ -227,7 +240,7 @@ namespace PathFinding
     }
 
   protected:
-    virtual void AlgorithmSpecificImplementation(PFNode* cell) = 0;
+    virtual void AlgorithmSpecificImplementation(const PFNode* cell) = 0;
 
     // Reset the internal variables for a new search.
     void Reset()
@@ -249,7 +262,7 @@ namespace PathFinding
   protected:
     
     // A helper method to find the least cost node from a std::vector
-    int GetLeastCostNodeIndex(std::vector<PathFinderNode*> myList)
+    int GetLeastCostNodeIndex(const std::vector<std::shared_ptr<PathFinderNode>>& myList) const
     {
       int best_index = 0;
       float best_priority = (*myList[0]).Fcost;
@@ -268,14 +281,14 @@ namespace PathFinding
     // A helper method to check if a value of T is in a list.
     // If it is then return the index of the item where the
     // value is. Otherwise return -1.
-    int IsInList(std::vector<PathFinderNode*> myList, const PFNode& cell)
+    int IsInList(const std::vector<std::shared_ptr<PathFinderNode>>& myList, const PFNode& cell) const
     {
       auto it = std::find_if(
         myList.begin(),
         myList.end(),
-        [&cell](PathFinderNode* obj)
+        [&cell](const std::shared_ptr<PathFinderNode>& obj)
         {
-          return (*obj->Location) == cell;
+          return *obj->Location == cell;
         });
 
       auto index = -1;
@@ -285,33 +298,13 @@ namespace PathFinding
       }
       return index;
     }
-
-    // Add a property that holds the current status of the
-    // pathfinder. By default it is set to NOT_INITIALIZED.
-    // Also note that we have made the set to private to 
-    // ensure that only this class can change and set
-    // the status.
-    PathFinderStatus mStatus;// = PathFinderStatus.NOT_INITIALIZED;
-
-    // Add properties for the start and goal nodes.
-    PFNode* mStart;
-    PFNode* mGoal;
-
-    // The property to access the mCurrentNode that the
-    // pathfinder is now at.
-    PathFinderNode* mCurrentNode;// { get; private set; }
-
-    typedef std::vector<PathFinderNode*> ClosedList;
-    typedef std::vector<PathFinderNode*> OpenList;
-    OpenList mOpenList;
-    ClosedList mClosedList;
   };
 
   // The AstarPathFinder.
   class AStarPathFinder : public PathFinder
   {
   protected:
-    void AlgorithmSpecificImplementation(PFNode* cell) override
+    void AlgorithmSpecificImplementation(const PFNode* cell) override
     {
       // first of all check if the node is already in the closedlist.
       // if so then we do not need to continue search for this node.
@@ -328,9 +321,9 @@ namespace PathFinding
 
         float G =
           (*mCurrentNode).GCost +
-          mCurrentNode->Location->NodeTraversalCost(*cell);
+          mCurrentNode->Location->GetNodeTraversalCost(*cell);
 
-        float H = cell->HeuristicCost(*mGoal);
+        float H = cell->GetHeuristicCost(*mGoal);
 
         // Check if the cell is already there in the open list.
         int idOList = IsInList(mOpenList, (*cell));
@@ -338,7 +331,7 @@ namespace PathFinding
         {
           // The cell does not exist in the open list.
           // We will add the cell to the open list.
-          PathFinderNode* n = new PathFinderNode(cell, mCurrentNode, G, H);
+          auto n = std::make_shared<PathFinderNode>(cell, mCurrentNode.get(), G, H);
           mOpenList.push_back(n);
         }
         else
@@ -349,7 +342,7 @@ namespace PathFinding
           if (G < oldG)
           {
             // change the parent and update the cost to the new G
-            mOpenList[idOList]->Parent = mCurrentNode;
+            mOpenList[idOList]->Parent = mCurrentNode.get();
             mOpenList[idOList]->SetGCost(G);
           }
         }

@@ -22,9 +22,9 @@ namespace PathFinding
     }
   }
 
-  std::vector<PFNode*> PFMapGrid::GetNeighbourCells(const PFMapGridNode& loc)
+  std::vector<const PFNode*> PFMapGrid::GetNeighbourCells(const PFMapGridNode& loc) const
   {
-    std::vector<PFNode*> neighbours;
+    std::vector<const PFNode*> neighbours;
 
     int x = loc.Point.x;
     int y = loc.Point.y;
@@ -35,9 +35,9 @@ namespace PathFinding
       int i = x;
       int j = y + 1;
 
-      if (GetCell(i, j)->GetIsWalkable())
+      if (GetMapNode(i, j)->GetIsWalkable())
       {
-        neighbours.push_back(GetCell(i, j));
+        neighbours.push_back(GetMapNode(i, j));
       }
     }
     // Check top-right
@@ -46,9 +46,9 @@ namespace PathFinding
       int i = x + 1;
       int j = y + 1;
 
-      if (GetCell(i, j)->GetIsWalkable())
+      if (GetMapNode(i, j)->GetIsWalkable())
       {
-        neighbours.push_back(GetCell(i, j));
+        neighbours.push_back(GetMapNode(i, j));
       }
     }
     // Check right
@@ -57,9 +57,9 @@ namespace PathFinding
       int i = x + 1;
       int j = y;
 
-      if (GetCell(i, j)->GetIsWalkable())
+      if (GetMapNode(i, j)->GetIsWalkable())
       {
-        neighbours.push_back(GetCell(i, j));
+        neighbours.push_back(GetMapNode(i, j));
       }
     }
     // Check right-down
@@ -68,9 +68,9 @@ namespace PathFinding
       int i = x + 1;
       int j = y - 1;
 
-      if (GetCell(i, j)->GetIsWalkable())
+      if (GetMapNode(i, j)->GetIsWalkable())
       {
-        neighbours.push_back(GetCell(i, j));
+        neighbours.push_back(GetMapNode(i, j));
       }
     }
     // Check down
@@ -79,9 +79,9 @@ namespace PathFinding
       int i = x;
       int j = y - 1;
 
-      if (GetCell(i, j)->GetIsWalkable())
+      if (GetMapNode(i, j)->GetIsWalkable())
       {
-        neighbours.push_back(GetCell(i, j));
+        neighbours.push_back(GetMapNode(i, j));
       }
     }
     // Check down-left
@@ -90,9 +90,9 @@ namespace PathFinding
       int i = x - 1;
       int j = y - 1;
 
-      if (GetCell(i, j)->GetIsWalkable())
+      if (GetMapNode(i, j)->GetIsWalkable())
       {
-        neighbours.push_back(GetCell(i, j));
+        neighbours.push_back(GetMapNode(i, j));
       }
     }
     // Check left
@@ -101,9 +101,9 @@ namespace PathFinding
       int i = x - 1;
       int j = y;
 
-      if (GetCell(i, j)->GetIsWalkable())
+      if (GetMapNode(i, j)->GetIsWalkable())
       {
-        neighbours.push_back(GetCell(i, j));
+        neighbours.push_back(GetMapNode(i, j));
       }
     }
     // Check left-top
@@ -112,9 +112,9 @@ namespace PathFinding
       int i = x - 1;
       int j = y + 1;
 
-      if (GetCell(i, j)->GetIsWalkable())
+      if (GetMapNode(i, j)->GetIsWalkable())
       {
-        neighbours.push_back(GetCell(i, j));
+        neighbours.push_back(GetMapNode(i, j));
       }
     }
     return neighbours;

@@ -23,7 +23,7 @@ namespace PathFinding
     /// </summary>
     float Cost;
 
-    virtual bool operator==(const PFNode& other)
+    virtual bool operator==(const PFNode& other) const
     {
       const PFMapGridNode* b = dynamic_cast<const PFMapGridNode*>(&other);
       if (b == 0)
@@ -32,14 +32,14 @@ namespace PathFinding
       return b->Point.x == Point.x && b->Point.y == Point.y;
     }
 
-    inline float HeuristicCost(const PFNode& other) const
+    inline float GetHeuristicCost(const PFNode& other) const
     {
       const PFMapGridNode* b = dynamic_cast<const PFMapGridNode*>(&other);
       assert(b);
       return ManhattanDistance(Point, b->Point);
     }
 
-    inline float NodeTraversalCost(const PFNode& other) const
+    inline float GetNodeTraversalCost(const PFNode& other) const
     {
       const PFMapGridNode* b = dynamic_cast<const PFMapGridNode*>(&other);
       assert(b);
@@ -74,7 +74,7 @@ namespace PathFinding
     {
     }
 
-    std::vector<PFNode*> GetNeighbours();
+    std::vector<const PFNode*> GetNeighbours() const;
 
   private:
     PFMapGrid& mGridMap;

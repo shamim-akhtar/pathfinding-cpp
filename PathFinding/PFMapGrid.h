@@ -28,21 +28,21 @@ namespace PathFinding
 
     bool AllowDiagonalMovement;
 
-    inline PFMapGridNode* GetCell(unsigned int i, unsigned int j)
+    inline PFMapGridNode* GetMapNode(unsigned int i, unsigned int j)
     {
       assert(i < mX&& j < mY);
       unsigned int x = i * mY + j;
       return mCells[x];
     }
 
-    inline const PFMapGridNode* GetCell(unsigned int i, unsigned int j) const
+    inline const PFMapGridNode* GetMapNode(unsigned int i, unsigned int j) const
     {
       assert(i < mX&& j < mY);
       unsigned int x = i * mY + j;
       return mCells[x];
     }
 
-    std::vector<PFNode*> GetNeighbourCells(const PFMapGridNode& loc);
+    std::vector<const PFNode*> GetNeighbourCells(const PFMapGridNode& loc) const;
     inline const PFMapNodes& GetMapNodes() const
     {
       return mCells;
