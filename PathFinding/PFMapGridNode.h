@@ -9,7 +9,7 @@ namespace PathFinding
 {
   class PFMapGrid;
   const float NON_WALKABLE_COST = 999999.0f;
-  class PATHFINDING_EXPORT PFMapGridNode : public PFNode
+  class PATHFINDING_EXPORT PFMapGridNode : public PathFinder::Node
   {
   public:
     Point2di Point;
@@ -23,7 +23,7 @@ namespace PathFinding
     /// </summary>
     float Cost;
 
-    virtual bool operator==(const PFNode& other) const
+    virtual bool operator==(const PathFinder::Node& other) const
     {
       const PFMapGridNode* b = dynamic_cast<const PFMapGridNode*>(&other);
       if (b == 0)
@@ -32,14 +32,14 @@ namespace PathFinding
       return b->Point.x == Point.x && b->Point.y == Point.y;
     }
 
-    inline float GetHeuristicCost(const PFNode& other) const
+    inline float GetHeuristicCost(const PathFinder::Node& other) const
     {
       const PFMapGridNode* b = dynamic_cast<const PFMapGridNode*>(&other);
       assert(b);
       return ManhattanDistance(Point, b->Point);
     }
 
-    inline float GetNodeTraversalCost(const PFNode& other) const
+    inline float GetNodeTraversalCost(const PathFinder::Node& other) const
     {
       const PFMapGridNode* b = dynamic_cast<const PFMapGridNode*>(&other);
       assert(b);
@@ -67,14 +67,14 @@ namespace PathFinding
 
     // construct the node with the grid and the location.
     PFMapGridNode(PFMapGrid& gridMap, Point2di value)
-      : PFNode()
+      : PathFinder::Node()
       , mGridMap(gridMap)
       , Point(value)
       , Cost(0.0f)
     {
     }
 
-    std::vector<const PFNode*> GetNeighbours() const;
+    std::vector<const PathFinder::Node*> GetNeighbours() const;
 
   private:
     PFMapGrid& mGridMap;

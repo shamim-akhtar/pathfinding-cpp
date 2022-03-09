@@ -42,7 +42,7 @@ namespace PathFinding
       return mCells[x].get();
     }
 
-    std::vector<const PFNode*> GetNeighbourCells(const PFMapGridNode& loc) const;
+    std::vector<const PathFinder::Node*> GetNeighbourCells(const PFMapGridNode& loc) const;
     inline const PFMapNodes& GetMapNodes() const
     {
       return mCells;

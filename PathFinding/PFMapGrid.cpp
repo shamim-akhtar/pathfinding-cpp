@@ -11,7 +11,7 @@ namespace PathFinding
     , mY(numY)
     , AllowDiagonalMovement(true)
   {
-    mCells.reserve(mX * mY);
+    mCells.reserve(static_cast<size_t>(mX * mY));
     for (unsigned int i = 0; i < mX; ++i)
     {
       for (unsigned int j = 0; j < mY; ++j)
@@ -22,9 +22,9 @@ namespace PathFinding
     }
   }
 
-  std::vector<const PFNode*> PFMapGrid::GetNeighbourCells(const PFMapGridNode& loc) const
+  std::vector<const PathFinder::Node*> PFMapGrid::GetNeighbourCells(const PFMapGridNode& loc) const
   {
-    std::vector<const PFNode*> neighbours;
+    std::vector<const PathFinder::Node*> neighbours;
 
     int x = loc.Point.x;
     int y = loc.Point.y;
