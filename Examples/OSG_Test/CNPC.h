@@ -72,6 +72,6 @@ namespace Faramira
     osg::Vec3 _direction;
     float _speed;
     bool mEnablePathFinding;
-    PathFinding::PFNode* mStart;
+    PathFinding::PathFinder::Node* mStart;
   };
 }

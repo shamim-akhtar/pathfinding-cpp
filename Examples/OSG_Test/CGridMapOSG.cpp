@@ -174,7 +174,7 @@ CGridMapOSG::CGridMapOSG(PathFinding::PFMapGrid* grid)
       pat->addChild(sprite->GetNode());
       mNode->addChild(pat);
 
-      PathFinding::PFMapGridNode* cell = grid->GetCell(i, j);
+      PathFinding::PFMapGridNode* cell = grid->GetMapNode(i, j);
       osg::ref_ptr<GridCellUserData> cell_data = new GridCellUserData(cell);
       sprite->GetNode()->setUserData(cell_data);
     }

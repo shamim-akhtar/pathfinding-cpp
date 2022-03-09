@@ -64,7 +64,7 @@ void CNPC::MoveToGridNodeWithPathFinding(PathFinding::PFMapGridNode* pfGridNode)
 	// 
 	if (mPathFinder->GetStatus() != PathFinding::PathFinderStatus::RUNNING)
 	{
-		PathFinding::PFNode* start = mStart;
+		PathFinding::PathFinder::Node* start = mStart;
 		PathFinding::PFMapGridNode* goal = pfGridNode;
 
 		mPathFinder->Initialize(start, goal);
@@ -74,11 +74,11 @@ void CNPC::MoveToGridNodeWithPathFinding(PathFinding::PFMapGridNode* pfGridNode)
 		}
 		if (mPathFinder->GetStatus() == PathFinding::PathFinderStatus::SUCCESS)
 		{
-			std::vector<PathFinding::PFNode*> path = mPathFinder->GetReversePath();
+			std::vector<const PathFinding::PathFinder::Node*> path = mPathFinder->GetReversePath();
 
 			for (int i = path.size() - 1; i >= 0; i--)
 			{
-				PathFinding::PFMapGridNode* node = dynamic_cast<PathFinding::PFMapGridNode*>(path[i]);
+				const PathFinding::PFMapGridNode* node = dynamic_cast<const PathFinding::PFMapGridNode*>(path[i]);
 				assert(node);
 				mWayPoints.push_back(osg::Vec3(node->Point.x, node->Point.y, 0.0f));
 			}
@@ -95,7 +95,7 @@ void CNPC::MoveToGridNodeWithPathFinding(PathFinding::PFMapGridNode* pfGridNode)
 void CNPC::SetMap(CGridMapOSG* gridMap)
 {
 	_map = gridMap;
-	mStart = _map->GetMapGrid()->GetCell(0, 0);
+	mStart = _map->GetMapGrid()->GetMapNode(0, 0);
 }
 
 void CNPC::update()
